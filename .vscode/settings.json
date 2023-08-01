@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "freertos.h": "c",
+        "freertosconfig.h": "c",
+        "stm32f7xx_hal.h": "c",
+        "stm32f7xx_hal_conf.h": "c",
+        "stm32f7xx_hal_rcc.h": "c",
+        "stm32f7xx_hal_def.h": "c",
+        "stm32_hal_legacy.h": "c",
+        "stm32f7xx.h": "c",
+        "stm32f756xx.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "task.h": "c",
+        "stdint.h": "c",
+        "croutine.h": "c"
+    }
+}
