@@ -455,7 +455,7 @@ void xPortPendSVHandler( void )
         "	msr basepri, r0						\n"
         "	ldmia sp!, {r0, r3}					\n"
         "										\n"
-        "	ldr r1, [r3]						\n"/* The first item in pxCurrentTCB is the task top of stack. */
+        "	ldr r1, [r3]						\n"/* The first item in pxCurrentTCB is the task top of stack. r3=pxCurrentTCB, 最终令psp=**r3 */
         "	ldr r0, [r1]						\n"
         "										\n"
         "	ldmia r0!, {r4-r11, r14}			\n"/* Pop the core registers. */
@@ -464,7 +464,7 @@ void xPortPendSVHandler( void )
         "	it eq								\n"
         "	vldmiaeq r0!, {s16-s31}				\n"
         "										\n"
-        "	msr psp, r0							\n"
+        "	msr psp, r0							\n"/* 令psp=**r3 */
         "	isb									\n"
         "										\n"
         #ifdef WORKAROUND_PMU_CM001 /* XMC4000 specific errata workaround. */
