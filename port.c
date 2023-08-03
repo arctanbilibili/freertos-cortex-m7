@@ -237,7 +237,12 @@ static void prvTaskExitError( void )
     }
 }
 /*-----------------------------------------------------------*/
-
+/*
+对于仅使用 SVC 来启动系统调度，后续任务切换全是pendsv来进行的个人理解：
+svc类似于x64的syscall指令，可以指定系统调用表中的一堆函数，主要负责 系统任务。
+pendsv仅当一个低优先级中断使用，也是手动触发，主要负责 任务切换。
+本身存在的目的就不同，各司其职，分开使用可以减少代码耦合
+*/
 void vPortSVCHandler( void )
 {
     __asm volatile (
@@ -423,7 +428,12 @@ void vPortExitCritical( void )
     }
 }
 /*-----------------------------------------------------------*/
-
+/*
+pensv中断、任务切换代码
+1、
+2、一般情况BL=call调用函数，会将返回地址放入r14，但是如果是中断进入的、异常发生时，
+    R14中保存异常返回标志，包括返回后进入线程模式还是处理器模式、使用PSP堆栈指针还是MSP堆栈指针。
+*/
 void xPortPendSVHandler( void )
 {
     /* This is a naked function. */
@@ -482,7 +492,21 @@ void xPortPendSVHandler( void )
     );
 }
 /*-----------------------------------------------------------*/
-
+/*
+1、处理tick自增和delay
+2、手动触发pensv中断，portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
+3、简述为何要新开辟一个pensv中断而不直接使用systick中断：
+    systick 优先级中断最高， pendsv中断优先级最低(但在freertos也不被设计为可以打断)，systick中断触发期会有两种情况：
+    1、打断IRQ
+    2、打断普通任务
+    对于情况 2 基本不会延期，马上执行，其实都一样，关键在于情况1：
+    难点：
+        对于普通任务的堆栈保存恢复、操作系统可以做到全权管理，所以 2 可以无缝执行。
+        而对于IRQ，一旦systick打断，它自己没有能力去恢复，所以如果pendsv，以往就干脆不恢复IRQ，直接去执行任务拉到了。这导致IRQ会在下下次才被恢复。
+    解决方案：
+        如果没有pendsv这种类似于系统调用的中断源，以往可以采取令systic优先级最低的手段，即 systick<IRQ 但这会导致实时性降低。
+        有pendsv，就利用pensv延迟任务切换，其优先级最低，会直到IRQ执行完再进行普通任务的切换。
+*/
 void xPortSysTickHandler( void )
 {
     /* The SysTick runs at the lowest interrupt priority, so when this interrupt

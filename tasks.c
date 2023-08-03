@@ -1703,7 +1703,11 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskSuspend == 1 )
-
+//任务手动挂起函数
+/*
+1、一旦挂起，所有的delay直接失效、只能手动恢复
+2、
+*/
     void vTaskSuspend( TaskHandle_t xTaskToSuspend )
     {
         TCB_t * pxTCB;
@@ -1809,7 +1813,10 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskSuspend == 1 )
-
+/*
+1、判断任务是否在suspend list内 && 任务是否不在xPendingReadyList内 && 无container？(一个推迟susupend的列表？)
+2、总之在xPendingReadyList内的，不算在suspend。
+*/
     static BaseType_t prvTaskIsTaskSuspended( const TaskHandle_t xTask )
     {
         BaseType_t xReturn = pdFALSE;
@@ -1855,7 +1862,11 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 /*-----------------------------------------------------------*/
 
 #if ( INCLUDE_vTaskSuspend == 1 )
-
+//任务手动唤醒
+/*
+1、
+2、
+*/
     void vTaskResume( TaskHandle_t xTaskToResume )
     {
         TCB_t * const pxTCB = xTaskToResume;
@@ -2723,7 +2734,13 @@ BaseType_t xTaskCatchUpTicks( TickType_t xTicksToCatchUp )
 
 #endif /* INCLUDE_xTaskAbortDelay */
 /*----------------------------------------------------------*/
-
+/*函数功能：
+1、xTickCount自增1
+2、判断是否>=xNextTaskUnblockTime的时间戳，即判断是不是delay list里有个原来delay的任务需要Unblock（解锁）出来
+3、移动delay队列里的任务到ready队列
+4、如果 允许嵌套 && 优先级>=正在运行的任务，xSwitchRequired置位，告知需要切换任务
+5、再循环 3-4 若干次，一旦delay队列头的delay时间戳未达到，更新xNextTaskUnblockTime时间戳
+*/
 BaseType_t xTaskIncrementTick( void )
 {
     TCB_t * pxTCB;
@@ -3009,6 +3026,10 @@ BaseType_t xTaskIncrementTick( void )
 #endif /* configUSE_APPLICATION_TASK_TAG */
 /*-----------------------------------------------------------*/
 
+/*
+1、taskSELECT_HIGHEST_PRIORITY_TASK宏任务选取ready list的下一个任务
+2、新任务直接赋值给pxCurrentTCB
+*/
 void vTaskSwitchContext( void )
 {
     if( uxSchedulerSuspended != ( UBaseType_t ) pdFALSE )
