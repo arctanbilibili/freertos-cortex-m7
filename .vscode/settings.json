@@ -13,6 +13,12 @@
         "stdlib.h": "c",
         "task.h": "c",
         "stdint.h": "c",
-        "croutine.h": "c"
+        "croutine.h": "c",
+        "stm32f7xx_hal_tim.h": "c",
+        "list.h": "c",
+        "stack_macros.h": "c",
+        "timers.h": "c",
+        "stddef.h": "c",
+        "stream_buffer.h": "c"
     }
 }

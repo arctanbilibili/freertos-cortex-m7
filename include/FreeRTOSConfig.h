@@ -47,6 +47,7 @@
 #define configUSE_IDLE_HOOK						0
 #define configUSE_TICK_HOOK						1
 #define configCPU_CLOCK_HZ						( SystemCoreClock )
+//修改configTICK_RATE_HZ，启动任务前会重新设置systick频率
 #define configTICK_RATE_HZ						( 1000 )
 #define configMAX_PRIORITIES					( 5 )
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 130 )
@@ -78,7 +79,7 @@ FreeRTOS/Source/tasks.c for limitations. */
 #define configUSE_STATS_FORMATTING_FUNCTIONS	1
 
 /* Co-routine definitions. */
-#define configUSE_CO_ROUTINES 			1
+#define configUSE_CO_ROUTINES 			0
 #define configMAX_CO_ROUTINE_PRIORITIES ( 2 )
 
 /* Software timer definitions. */

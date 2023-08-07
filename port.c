@@ -433,6 +433,8 @@ pensv中断、任务切换代码
 1、
 2、一般情况BL=call调用函数，会将返回地址放入r14，但是如果是中断进入的、异常发生时，
     R14中保存异常返回标志，包括返回后进入线程模式还是处理器模式、使用PSP堆栈指针还是MSP堆栈指针。
+3、msr basepri, r0 r0=32时，屏蔽优先级>=32的所有中断。
+4、msr basepri, r0 r0=0 时，打开所有中断。
 */
 void xPortPendSVHandler( void )
 {

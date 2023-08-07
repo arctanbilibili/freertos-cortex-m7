@@ -262,7 +262,12 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
     }                                                      \
     taskEXIT_CRITICAL()
 /*-----------------------------------------------------------*/
-
+/*
+队列复位：
+1、保持长度不变，重置各个指针，如tail和writeto等等。
+2、如果是新队列，常规初始化发送、接受缓冲链表。
+3、如果是旧队列，清空发送、接收缓冲链表。
+*/
 BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
                                BaseType_t xNewQueue )
 {
@@ -459,7 +464,13 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
 
 #endif /* configSUPPORT_STATIC_ALLOCATION */
 /*-----------------------------------------------------------*/
+/*
+队列两种模式：
+1、uxItemSize=0，其当作mutex使用（带论证）
+2、uxItemSize>0，当队列用。
 
+3、传入队列头和长度，调用xQueueGenericReset复位及初始化队列
+*/
 static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
                                    const UBaseType_t uxItemSize,
                                    uint8_t * pucQueueStorage,
