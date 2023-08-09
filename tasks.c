@@ -1078,7 +1078,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
         {
             /* There are no other tasks, or all the other tasks are in
              * the suspended state - make this the current task. */
-            pxCurrentTCB = pxNewTCB;
+            pxCurrentTCB = pxNewTCB;//第一个任务直接塞进全局变量pxCurrentTCB
 
             if( uxCurrentNumberOfTasks == ( UBaseType_t ) 1 )
             {
@@ -1099,7 +1099,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
              * so far. */
             if( xSchedulerRunning == pdFALSE )
             {
-                if( pxCurrentTCB->uxPriority <= pxNewTCB->uxPriority )
+                if( pxCurrentTCB->uxPriority <= pxNewTCB->uxPriority )//现在任务不在运行，则高优先级的任务替换pxCurrentTCB
                 {
                     pxCurrentTCB = pxNewTCB;
                 }
@@ -2134,7 +2134,7 @@ void vTaskEndScheduler( void )
     vPortEndScheduler();
 }
 /*----------------------------------------------------------*/
-
+//禁止任务调度函数！但中断仍可以运行。
 void vTaskSuspendAll( void )
 {
     /* A critical section is not required as the variable is of type

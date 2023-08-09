@@ -180,6 +180,26 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 /*
  * See header file for description.
  */
+/*
+初始化任务初始伪堆栈，psp挪到此处，bx即可自动弹出并执行任务pxCode
+
+关于fpu的lazy stacking：
+EXC_RETURN[4]
+0 = 栈帧中包括了FPU寄存器空间
+1 = 栈帧中不包括FPU寄存器空间
+注：freertos的初始堆栈，
+
+打开Lazy Stacking，打开自动状态保存。
+如果用到FPU，CONTROL.FPCA位自动置1。如果响应中断时，CONTROL.FPCA为1，处理器在堆栈中预留FPU寄存器的空间，同时将FPCCR.LSPACT位置1。
+但是PFU寄存器并没有马上入栈，直到在中断处理函数中用到FPU时再入栈。
+
+被中断函数使用了FPU，如果在执行中断处理函数时也用到了FPU，在执行到中断函数的第一条浮点指令时，
+内核会暂停，然后硬件自动将先前的浮点寄存器内容（S0~S15，FPSCR）压入预留的存储空间中。
+
+一般硬件自动入栈顺序：
+先Push浮点寄存器（或直接空出）
+再Push通用寄存器
+*/
 StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
                                      TaskFunction_t pxCode,
                                      void * pvParameters )
@@ -242,6 +262,11 @@ static void prvTaskExitError( void )
 svc类似于x64的syscall指令，可以指定系统调用表中的一堆函数，主要负责 系统任务。
 pendsv仅当一个低优先级中断使用，也是手动触发，主要负责 任务切换。
 本身存在的目的就不同，各司其职，分开使用可以减少代码耦合
+
+ldmia r0!, {r4-r11, r14} 解析：
+svc 0 会自动压栈 {r4-r11, r14} 到MSP的栈内。
+现在直接
+
 */
 void vPortSVCHandler( void )
 {
@@ -435,6 +460,9 @@ pensv中断、任务切换代码
     R14中保存异常返回标志，包括返回后进入线程模式还是处理器模式、使用PSP堆栈指针还是MSP堆栈指针。
 3、msr basepri, r0 r0=32时，屏蔽优先级>=32的所有中断。
 4、msr basepri, r0 r0=0 时，打开所有中断。
+
+5、虽然所有中断（包括PendSV）进入后都使用msp指针，但如果control[1]=1，那退出后依然自动切换到psp。即自动切换回任务堆栈。
+    任务堆栈的寄存器保存到各自的psp
 */
 void xPortPendSVHandler( void )
 {
@@ -455,7 +483,7 @@ void xPortPendSVHandler( void )
         "	stmdb r0!, {r4-r11, r14}			\n"/* Save the core registers. */
         "	str r0, [r2]						\n"/* Save the new top of stack into the first member of the TCB. */
         "										\n"
-        "	stmdb sp!, {r0, r3}					\n"
+        "	stmdb sp!, {r0, r3}					\n"//这里在Msp，是调用c函数的压栈，和保存现场无关
         "	mov r0, %0 							\n"
         "	cpsid i								\n"/* Errata workaround. */
         "	msr basepri, r0						\n"
