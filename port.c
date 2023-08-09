@@ -225,6 +225,9 @@ StackType_t * pxPortInitialiseStack( StackType_t * pxTopOfStack,
      * own exec return value. */
     pxTopOfStack--;
     *pxTopOfStack = portINITIAL_EXC_RETURN;
+    //*pxTopOfStack = portINITIAL_EXEC_RETURN：处理器进入异常处理或者中断模式的时候，
+    //连接寄存器的数值会被更新为portINITIAL_EXEC_RETURN，当我们使用BX或者LDR这类指令时，会将该数值写入程序寄存器，是用来触发异常返回机制。对应切换语句的bx r14
+    //0xfffffffd亦代表返回后使用psp的栈
 
     pxTopOfStack -= 8; /* R11, R10, R9, R8, R7, R6, R5 and R4. */
 
@@ -266,6 +269,11 @@ pendsv仅当一个低优先级中断使用，也是手动触发，主要负责 �
 ldmia r0!, {r4-r11, r14} 解析：
 svc 0 会自动压栈 {r4-r11, r14} 到MSP的栈内。
 现在直接
+
+bx r14终极解释：
+异常发生时,R14中保存异常返回标志,包括返回后进入线程模式还是处理器模式、使用PSP堆栈指针还是MSP堆栈指针，
+当调用 bx r14指令后，硬件会知道要从异常返回，然后出栈，这个时候堆栈指针PSP已经指向了新任务堆栈的正确位置，
+当新任务的运行地址被出栈到PC寄存器后，新的任务也会被执行。
 
 */
 void vPortSVCHandler( void )
