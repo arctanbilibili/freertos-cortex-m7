@@ -1501,7 +1501,11 @@ BaseType_t xQueueReceive( QueueHandle_t xQueue,
     } /*lint -restore */
 }
 /*-----------------------------------------------------------*/
+/*
+1、调度器挂起，报错
+2、
 
+*/
 BaseType_t xQueueSemaphoreTake( QueueHandle_t xQueue,
                                 TickType_t xTicksToWait )
 {

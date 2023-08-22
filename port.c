@@ -432,7 +432,10 @@ void vPortEndScheduler( void )
     configASSERT( uxCriticalNesting == 1000UL );
 }
 /*-----------------------------------------------------------*/
-
+/*
+1、就是关中断
+2、但是增加了中断内鉴定，即不允许中断内调用否则报错
+*/
 void vPortEnterCritical( void )
 {
     portDISABLE_INTERRUPTS();
