@@ -1705,8 +1705,10 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 #if ( INCLUDE_vTaskSuspend == 1 )
 //任务手动挂起函数
 /*
+0、suspendAll本质是关闭调度器（任务切换函数），而此函数是加入suspend队列
 1、一旦挂起，所有的delay直接失效、只能手动恢复
-2、
+2、从ISR中resume：xTaskResumeFromISR。放入pendready队列，resume时拿出来
+3、从普通中resum：直接放入ready队列
 */
     void vTaskSuspend( TaskHandle_t xTaskToSuspend )
     {

@@ -113,7 +113,10 @@ void vListInsertEnd( List_t * const pxList,
     ( pxList->uxNumberOfItems )++;
 }
 /*-----------------------------------------------------------*/
-
+/*
+1、不是简单的向后插入，实际上是维护一个小顶队列，越靠近end越大，更新delaylist时候取首元素就行了
+2、目前知道用在用在DelayList里
+*/
 void vListInsert( List_t * const pxList,
                   ListItem_t * const pxNewListItem )
 {
