@@ -470,6 +470,7 @@ BaseType_t xQueueGenericReset( QueueHandle_t xQueue,
 2、uxItemSize>0，当队列用。
 
 3、传入队列头和长度，调用xQueueGenericReset复位及初始化队列
+4、队列集pxQueueSetContainer置位NULL？
 */
 static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
                                    const UBaseType_t uxItemSize,
@@ -811,7 +812,11 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
 
 #endif /* ( ( configUSE_COUNTING_SEMAPHORES == 1 ) && ( configSUPPORT_DYNAMIC_ALLOCATION == 1 ) ) */
 /*-----------------------------------------------------------*/
-
+/*
+1、uxMessagesWaiting是现在队内实际元素，检查此值，小于队列容量才能写入，否则等待，阻塞
+2、只要容量满足，直接写入一次直接return，下面的超时不执行了，和ISR差不多
+3、ISR多了一个加入pendReadyList
+*/
 BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                               const void * const pvItemToQueue,
                               TickType_t xTicksToWait,
@@ -841,6 +846,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
              * highest priority task wanting to access the queue.  If the head item
              * in the queue is to be overwritten then it does not matter if the
              * queue is full. */
+            //只要容量满足，直接写入一次直接return，下面的超时不执行了，和ISR差不多
             if( ( pxQueue->uxMessagesWaiting < pxQueue->uxLength ) || ( xCopyPosition == queueOVERWRITE ) )
             {
                 traceQUEUE_SEND( pxQueue );
@@ -1023,7 +1029,9 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
     } /*lint -restore */
 }
 /*-----------------------------------------------------------*/
-
+/*
+1、uxMessagesWaiting是现在队内实际元素，检查此值，小于队列容量才能写入，否则返回errQUEUE_FULL，不阻塞
+*/
 BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
                                      const void * const pvItemToQueue,
                                      BaseType_t * const pxHigherPriorityTaskWoken,
@@ -1060,6 +1068,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
      * post). */
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
     {
+        //uxMessagesWaiting是现在队内实际元素，小于队列容量才能写入，否则返回errQUEUE_FULL
         if( ( pxQueue->uxMessagesWaiting < pxQueue->uxLength ) || ( xCopyPosition == queueOVERWRITE ) )
         {
             const int8_t cTxLock = pxQueue->cTxLock;
@@ -1112,6 +1121,7 @@ BaseType_t xQueueGenericSendFromISR( QueueHandle_t xQueue,
                         {
                             if( listLIST_IS_EMPTY( &( pxQueue->xTasksWaitingToReceive ) ) == pdFALSE )
                             {
+                                //从xTasksWaitingToReceive等待接收队列移除首元素，加入readyList
                                 if( xTaskRemoveFromEventList( &( pxQueue->xTasksWaitingToReceive ) ) != pdFALSE )
                                 {
                                     /* The task waiting has a higher priority so

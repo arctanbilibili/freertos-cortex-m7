@@ -3193,7 +3193,11 @@ void vTaskPlaceOnUnorderedEventList( List_t * pxEventList,
 
 #endif /* configUSE_TIMERS */
 /*-----------------------------------------------------------*/
-
+/*
+0、功能：移除第一个链表项到readyList
+1、如果调度器正常，插入到readList
+2、如果调度器被挂起，插入到xPendingReadyList
+*/
 BaseType_t xTaskRemoveFromEventList( const List_t * const pxEventList )
 {
     TCB_t * pxUnblockedTCB;
