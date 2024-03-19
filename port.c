@@ -549,7 +549,7 @@ void xPortPendSVHandler( void )
         对于普通任务的堆栈保存恢复、操作系统可以做到全权管理，所以 2 可以无缝执行。
         而对于IRQ，一旦systick打断，它自己没有能力去恢复，所以如果pendsv，以往就干脆不恢复IRQ，直接去执行任务拉到了。这导致IRQ会在下下次才被恢复。
     解决方案：
-        如果没有pendsv这种类似于系统调用的中断源，以往可以采取令systic优先级最低的手段，即 systick<IRQ 但这会导致实时性降低。
+        如果没有pendsv这种类似于系统调用的中断源，以往可以采取令systic优先级最低的手段，即 systick<IRQ 但这会导致实时性降低。（但事实上freertos的systick优先级还是最低，属于系统特性）
         有pendsv，就利用pensv延迟任务切换，其优先级最低，会直到IRQ执行完再进行普通任务的切换。
 */
 void xPortSysTickHandler( void )
@@ -565,7 +565,7 @@ void xPortSysTickHandler( void )
         {
             /* A context switch is required.  Context switching is performed in
              * the PendSV interrupt.  Pend the PendSV interrupt. */
-            portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
+            portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;//激活一次pendSV中断信号
         }
     }
     portENABLE_INTERRUPTS();

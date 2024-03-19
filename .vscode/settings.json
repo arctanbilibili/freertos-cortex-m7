@@ -19,6 +19,7 @@
         "stack_macros.h": "c",
         "timers.h": "c",
         "stddef.h": "c",
-        "stream_buffer.h": "c"
+        "stream_buffer.h": "c",
+        "queue.h": "c"
     }
 }

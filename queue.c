@@ -815,7 +815,7 @@ static void prvInitialiseNewQueue( const UBaseType_t uxQueueLength,
 /*
 1、uxMessagesWaiting是现在队内实际元素，检查此值，小于队列容量才能写入，否则等待，阻塞
 2、只要容量满足，直接写入一次直接return，下面的超时不执行了，和ISR差不多
-3、ISR多了一个加入pendReadyList
+3、对应的ISR函数多了一个加入pendReadyList
 */
 BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
                               const void * const pvItemToQueue,
@@ -991,7 +991,7 @@ BaseType_t xQueueGenericSend( QueueHandle_t xQueue,
             if( prvIsQueueFull( pxQueue ) != pdFALSE )
             {
                 traceBLOCKING_ON_QUEUE_SEND( pxQueue );
-                vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToSend ), xTicksToWait );
+                vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToSend ), xTicksToWait );//延时序列挂载一个时间，到时见自动切回来
 
                 /* Unlocking the queue means queue events can effect the
                  * event list. It is possible that interrupts occurring now
@@ -1293,6 +1293,8 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
                         {
                             if( listLIST_IS_EMPTY( &( pxQueue->xTasksWaitingToReceive ) ) == pdFALSE )
                             {
+                                //xTaskRemoveFromEventList 复合功能：移除+添加
+                                //pxHigherPriorityTaskWoken 变量的作用，如果唤醒的任务优先级比现在任务低，就无需切换进程。否则才切换进程。
                                 if( xTaskRemoveFromEventList( &( pxQueue->xTasksWaitingToReceive ) ) != pdFALSE )
                                 {
                                     /* The task waiting has a higher priority so

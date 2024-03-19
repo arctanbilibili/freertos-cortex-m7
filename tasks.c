@@ -3194,7 +3194,7 @@ void vTaskPlaceOnUnorderedEventList( List_t * pxEventList,
 #endif /* configUSE_TIMERS */
 /*-----------------------------------------------------------*/
 /*
-0、功能：移除第一个链表项到readyList
+0、功能：移除第一个链表项到readyList ，且放到list的index项后->原因，switch函数使用的就是下一个index的TCB
 1、如果调度器正常，插入到readList
 2、如果调度器被挂起，插入到xPendingReadyList
 */
