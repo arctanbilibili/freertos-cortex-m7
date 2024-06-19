@@ -341,7 +341,7 @@ void vPortInitialiseBlocks( void )
 }
 /*-----------------------------------------------------------*/
 
-static void prvHeapInit( void ) /* PRIVILEGED_FUNCTION */
+static void prvHeapInit( void ) /* PRIVILEGED_FUNCTION *///默认内存管理策略
 {
     BlockLink_t * pxFirstFreeBlock;
     uint8_t * pucAlignedHeap;
